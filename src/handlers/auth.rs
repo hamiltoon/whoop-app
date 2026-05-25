@@ -18,6 +18,10 @@ pub async fn login(State(state): State<AppState>) -> Redirect {
 #[derive(Deserialize)]
 pub struct CallbackQuery {
     pub code: String,
+    #[serde(default)]
+    pub state: Option<String>,
+    #[serde(default)]
+    pub scope: Option<String>,
 }
 
 pub async fn callback(
