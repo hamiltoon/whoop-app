@@ -17,21 +17,29 @@ pub async fn login(State(state): State<AppState>) -> Redirect {
 
 #[derive(Deserialize)]
 pub struct CallbackQuery {
-    pub code: String,
+    pub code: Option<String>,
+    pub error: Option<String>,
+    pub error_description: Option<String>,
     #[serde(default)]
     pub state: Option<String>,
-    #[serde(default)]
-    pub scope: Option<String>,
 }
 
 pub async fn callback(
     State(state): State<AppState>,
     Query(query): Query<CallbackQuery>,
 ) -> Result<Response, AppError> {
+    if let Some(err) = &query.error {
+        let desc = query.error_description.as_deref().unwrap_or("Unknown error");
+        return Err(AppError::InternalError(format!("OAuth error: {err} — {desc}")));
+    }
+
+    let code = query.code.as_deref()
+        .ok_or_else(|| AppError::InternalError("Missing authorization code".to_string()))?;
+
     let token_pair = whoop_auth::exchange_code(
         &state.http_client,
         &state.config,
-        &query.code,
+        code,
     )
     .await
     .map_err(|e| AppError::InternalError(e))?;

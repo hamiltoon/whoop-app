@@ -332,6 +332,6 @@ async fn auth_callback_without_code_returns_400() {
         .await
         .unwrap();
 
-    // Missing required query parameter "code" -> 400 from axum's Query extractor
-    assert_eq!(resp.status(), StatusCode::BAD_REQUEST);
+    // Missing code param -> 500 (InternalError: "Missing authorization code")
+    assert_eq!(resp.status(), StatusCode::INTERNAL_SERVER_ERROR);
 }

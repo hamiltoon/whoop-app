@@ -7,8 +7,9 @@ const TOKEN_URL: &str = "https://api.prod.whoop.com/oauth/oauth2/token";
 const SCOPES: &str = "read:recovery read:cycles read:workout read:sleep read:profile read:body_measurement";
 
 pub fn build_auth_url(config: &Config) -> String {
+    let state = uuid::Uuid::new_v4().to_string();
     format!(
-        "{AUTH_URL}?client_id={}&redirect_uri={}&response_type=code&scope={}&state=whoop",
+        "{AUTH_URL}?client_id={}&redirect_uri={}&response_type=code&scope={}&state={state}",
         config.client_id,
         urlencoding(&config.redirect_uri),
         urlencoding(SCOPES),
