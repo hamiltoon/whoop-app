@@ -113,3 +113,43 @@ impl axum::response::IntoResponse for AppError {
         (status, axum::Json(serde_json::json!({"error": message}))).into_response()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use axum::response::IntoResponse;
+
+    #[test]
+    fn unauthorized_error_returns_401() {
+        let resp = AppError::Unauthorized.into_response();
+        assert_eq!(resp.status(), StatusCode::UNAUTHORIZED);
+    }
+
+    #[test]
+    fn token_refresh_failed_returns_401() {
+        let resp = AppError::TokenRefreshFailed.into_response();
+        assert_eq!(resp.status(), StatusCode::UNAUTHORIZED);
+    }
+
+    #[test]
+    fn internal_error_returns_500() {
+        let resp = AppError::InternalError("boom".to_string()).into_response();
+        assert_eq!(resp.status(), StatusCode::INTERNAL_SERVER_ERROR);
+    }
+
+    #[test]
+    fn whoop_api_error_returns_upstream_status() {
+        let resp = AppError::WhoopApiError {
+            status: StatusCode::FORBIDDEN,
+            body: serde_json::json!({"msg": "forbidden"}),
+        }
+        .into_response();
+        assert_eq!(resp.status(), StatusCode::FORBIDDEN);
+    }
+
+    #[test]
+    fn app_error_debug_format() {
+        let err = AppError::Unauthorized;
+        assert!(format!("{:?}", err).contains("Unauthorized"));
+    }
+}

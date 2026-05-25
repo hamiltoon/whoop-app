@@ -27,3 +27,50 @@ pub fn extract_session(headers: &HeaderMap) -> Result<SessionId, AppError> {
 
     Err(AppError::Unauthorized)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use axum::http::HeaderMap;
+
+    #[test]
+    fn extract_session_valid_cookie() {
+        let mut headers = HeaderMap::new();
+        let id = Uuid::new_v4();
+        headers.insert("cookie", format!("whoop_session={id}").parse().unwrap());
+        let result = extract_session(&headers).unwrap();
+        assert_eq!(result, id);
+    }
+
+    #[test]
+    fn extract_session_among_multiple_cookies() {
+        let mut headers = HeaderMap::new();
+        let id = Uuid::new_v4();
+        headers.insert(
+            "cookie",
+            format!("other=abc; whoop_session={id}; foo=bar").parse().unwrap(),
+        );
+        let result = extract_session(&headers).unwrap();
+        assert_eq!(result, id);
+    }
+
+    #[test]
+    fn extract_session_no_cookie_header() {
+        let headers = HeaderMap::new();
+        assert!(extract_session(&headers).is_err());
+    }
+
+    #[test]
+    fn extract_session_no_whoop_cookie() {
+        let mut headers = HeaderMap::new();
+        headers.insert("cookie", "other=value".parse().unwrap());
+        assert!(extract_session(&headers).is_err());
+    }
+
+    #[test]
+    fn extract_session_invalid_uuid() {
+        let mut headers = HeaderMap::new();
+        headers.insert("cookie", "whoop_session=not-a-uuid".parse().unwrap());
+        assert!(extract_session(&headers).is_err());
+    }
+}

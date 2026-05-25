@@ -84,3 +84,54 @@ fn urlencoding(s: &str) -> String {
         .replace('/', "%2F")
         .replace(' ', "%20")
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn test_config() -> Config {
+        Config {
+            client_id: "my_client_id".to_string(),
+            client_secret: "my_secret".to_string(),
+            redirect_uri: "http://localhost:3000/auth/callback".to_string(),
+            port: 3000,
+        }
+    }
+
+    #[test]
+    fn auth_url_contains_client_id() {
+        let url = build_auth_url(&test_config());
+        assert!(url.contains("client_id=my_client_id"));
+    }
+
+    #[test]
+    fn auth_url_contains_encoded_redirect_uri() {
+        let url = build_auth_url(&test_config());
+        assert!(url.contains("redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fauth%2Fcallback"));
+    }
+
+    #[test]
+    fn auth_url_contains_response_type_code() {
+        let url = build_auth_url(&test_config());
+        assert!(url.contains("response_type=code"));
+    }
+
+    #[test]
+    fn auth_url_contains_encoded_scopes() {
+        let url = build_auth_url(&test_config());
+        assert!(url.contains("scope=read%3Arecovery%20read%3Acycles%20read%3Aworkout%20read%3Asleep%20read%3Aprofile%20read%3Abody_measurement"));
+    }
+
+    #[test]
+    fn auth_url_starts_with_correct_base() {
+        let url = build_auth_url(&test_config());
+        assert!(url.starts_with(AUTH_URL));
+    }
+
+    #[test]
+    fn urlencoding_encodes_special_chars() {
+        assert_eq!(urlencoding("http://example.com/path"), "http%3A%2F%2Fexample.com%2Fpath");
+        assert_eq!(urlencoding("a b c"), "a%20b%20c");
+        assert_eq!(urlencoding("plain"), "plain");
+    }
+}
