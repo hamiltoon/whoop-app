@@ -11,7 +11,8 @@ pub struct TokenPair {
 #[derive(Debug, Deserialize)]
 pub struct TokenResponse {
     pub access_token: String,
-    pub refresh_token: String,
+    #[serde(default)]
+    pub refresh_token: Option<String>,
     pub expires_in: i64,
     #[serde(default)]
     pub token_type: Option<String>,
@@ -23,7 +24,7 @@ impl TokenResponse {
     pub fn into_token_pair(self) -> TokenPair {
         TokenPair {
             access_token: self.access_token,
-            refresh_token: self.refresh_token,
+            refresh_token: self.refresh_token.unwrap_or_default(),
             expires_at: Utc::now() + chrono::Duration::seconds(self.expires_in),
         }
     }
@@ -66,7 +67,7 @@ mod tests {
         let json = r#"{"access_token":"abc","refresh_token":"def","expires_in":3600}"#;
         let resp: TokenResponse = serde_json::from_str(json).unwrap();
         assert_eq!(resp.access_token, "abc");
-        assert_eq!(resp.refresh_token, "def");
+        assert_eq!(resp.refresh_token.as_deref(), Some("def"));
         assert_eq!(resp.expires_in, 3600);
     }
 
@@ -74,7 +75,7 @@ mod tests {
     fn token_response_into_token_pair() {
         let resp = TokenResponse {
             access_token: "acc".to_string(),
-            refresh_token: "ref".to_string(),
+            refresh_token: Some("ref".to_string()),
             expires_in: 7200,
             token_type: None,
             scope: None,
