@@ -24,6 +24,7 @@ pub fn build(state: AppState) -> Router {
         .route("/workouts/{id}", get(handlers::workouts::get_workout));
 
     Router::new()
+        .route("/", get(handlers::index::index))
         .nest("/auth", auth_routes)
         .nest("/api", api_routes)
         .layer(TraceLayer::new_for_http())

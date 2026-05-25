@@ -1,4 +1,5 @@
 pub mod auth;
+pub mod index;
 pub mod cycles;
 pub mod profile;
 pub mod recovery;
