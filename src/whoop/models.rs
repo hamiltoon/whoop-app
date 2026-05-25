@@ -13,6 +13,10 @@ pub struct TokenResponse {
     pub access_token: String,
     pub refresh_token: String,
     pub expires_in: i64,
+    #[serde(default)]
+    pub token_type: Option<String>,
+    #[serde(default)]
+    pub scope: Option<String>,
 }
 
 impl TokenResponse {
@@ -72,6 +76,8 @@ mod tests {
             access_token: "acc".to_string(),
             refresh_token: "ref".to_string(),
             expires_in: 7200,
+            token_type: None,
+            scope: None,
         };
         let pair = resp.into_token_pair();
         assert_eq!(pair.access_token, "acc");

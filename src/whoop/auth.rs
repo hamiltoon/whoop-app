@@ -41,10 +41,11 @@ pub async fn exchange_code(
         return Err(format!("Token exchange failed: {body}"));
     }
 
-    let token_resp: TokenResponse = resp
-        .json()
-        .await
-        .map_err(|e| format!("Failed to parse token response: {e}"))?;
+    let body = resp.text().await
+        .map_err(|e| format!("Failed to read token response body: {e}"))?;
+
+    let token_resp: TokenResponse = serde_json::from_str(&body)
+        .map_err(|e| format!("Failed to parse token response: {e} — body: {body}"))?;
 
     Ok(token_resp.into_token_pair())
 }
